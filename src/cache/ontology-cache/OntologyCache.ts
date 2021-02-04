@@ -1,5 +1,5 @@
 import { AsyncSubject, forkJoin, Observable, of } from "rxjs";
-import { map, mergeMap } from "rxjs/operators";
+import { map, mergeMap, tap } from "rxjs/operators";
 import { V2Endpoint } from "../../api/v2/v2-endpoint";
 import { KnoraApiConfig } from "../../knora-api-config";
 import { IHasProperty } from "../../models/v2/ontologies/class-definition";
@@ -135,10 +135,63 @@ export class OntologyCache extends GenericCache<ReadOntology> {
                     return new ResourceClassAndPropertyDefinitions({}, {});
                 }
 
-
             })
         );
 
+    }
+
+    /**
+     * Given a resource class Iri, returns all super class Iris in ascending order,
+     * starting with the resource class Iri.
+     *
+     * @param resourceClassIri the Iri of the resource class whose super class Iris should be determined.
+     */
+    getSuperClassIris(resourceClassIri: string): Observable<string[]> {
+
+        const getSuperClassDef = (onto: ResourceClassDefinitionWithPropertyDefinition, superClassIri?: string): Observable<ResourceClassDefinitionWithPropertyDefinition[]> => {
+
+            // check if superclass is given
+            if (superClassIri) {
+                return this.getResourceClassDefinition(superClassIri).pipe(
+                    mergeMap(
+                        onto2 => {
+
+                            const superDefs = getSuperClassDef(onto2.classes[superClassIri], onto2.classes[superClassIri].subClassOf[0]);
+
+                            return forkJoin([of(onto), superDefs])
+                                .pipe(
+                                    map(
+                                        defs => {
+                                            // console.log("1 returning from getSuperClassDef", superClassIri, defs);
+                                            return defs.reduce(
+                                                (acc: ResourceClassDefinitionWithPropertyDefinition[], curVal: ResourceClassDefinitionWithPropertyDefinition | ResourceClassDefinitionWithPropertyDefinition[]) =>
+                                                    acc.concat(curVal) as ResourceClassDefinitionWithPropertyDefinition[],
+                                                []
+                                            ) as ResourceClassDefinitionWithPropertyDefinition[];
+                                        }
+                                    ),
+                                    tap(
+                                        defs => {
+                                            console.log("2 returning from getSuperClassDef", superClassIri, defs);
+                                        }
+                                    )
+                                );
+                        }
+                    )
+                );
+            } else {
+                return of([onto]);
+            }
+
+        };
+
+        return this.getResourceClassDefinition(resourceClassIri)
+            .pipe(
+                mergeMap(onto => {
+                    return getSuperClassDef(onto.classes[resourceClassIri], onto.classes[resourceClassIri].subClassOf[0]);
+                }),
+                map((defs: ResourceClassDefinitionWithPropertyDefinition[]) => defs.map((def: ResourceClassDefinitionWithPropertyDefinition) => def.id))
+            );
     }
 
     protected requestItemFromKnora(key: string, isDependency: boolean): Observable<ReadOntology[]> {

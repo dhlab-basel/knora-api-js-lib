@@ -1,16 +1,16 @@
 import { of } from "rxjs";
-import { MockOntologyAssertions } from "../../../test/data/api/v2/mock-ontology-assertions";
 import { MockOntology } from "../../../test/data/api/v2/mock-ontology";
+import { MockOntologyAssertions } from "../../../test/data/api/v2/mock-ontology-assertions";
 import { KnoraApiConfig } from "../../knora-api-config";
 import { KnoraApiConnection } from "../../knora-api-connection";
+import { PropertyDefinition } from "../../models/v2/ontologies/property-definition";
 import { ReadOntology } from "../../models/v2/ontologies/read/read-ontology";
+import { ResourcePropertyDefinition } from "../../models/v2/ontologies/resource-property-definition";
+import { SystemPropertyDefinition } from "../../models/v2/ontologies/system-property-definition";
 import {
     IHasPropertyWithPropertyDefinition,
     ResourceClassDefinitionWithPropertyDefinition
 } from "./resource-class-definition-with-property-definition";
-import { PropertyDefinition } from "../../models/v2/ontologies/property-definition";
-import { SystemPropertyDefinition } from "../../models/v2/ontologies/system-property-definition";
-import { ResourcePropertyDefinition } from "../../models/v2/ontologies/resource-property-definition";
 
 describe("OntologyCache", () => {
 
@@ -243,6 +243,48 @@ describe("OntologyCache", () => {
 
                     done();
                 });
+
+        });
+
+    });
+
+    describe("Method getSuperClassIris()", () => {
+
+        it("should get Iris of super class for an anything:Thing", done => {
+
+            knoraApiConnection.v2.ontologyCache.getSuperClassIris("http://0.0.0.0:3333/ontology/0001/anything/v2#Thing").subscribe(
+                superClassIris => {
+                    expect(superClassIris).toEqual(["http://0.0.0.0:3333/ontology/0001/anything/v2#Thing", "http://api.knora.org/ontology/knora-api/v2#Resource"]);
+
+                    expect(getOntoSpy).toHaveBeenCalledTimes(2);
+                    expect(getOntoSpy).toHaveBeenCalledWith("http://api.knora.org/ontology/knora-api/v2");
+                    expect(getOntoSpy).toHaveBeenCalledWith("http://0.0.0.0:3333/ontology/0001/anything/v2");
+
+                    done();
+                }
+            );
+
+        });
+
+        it("should get Iris of super class for an anything:ThingPicture", done => {
+
+            knoraApiConnection.v2.ontologyCache.getSuperClassIris("http://0.0.0.0:3333/ontology/0001/anything/v2#ThingPicture").subscribe(
+                superClassIris => {
+                    expect(superClassIris).toEqual(
+                        [
+                            "http://0.0.0.0:3333/ontology/0001/anything/v2#ThingPicture",
+                            "http://api.knora.org/ontology/knora-api/v2#StillImageRepresentation",
+                            "http://api.knora.org/ontology/knora-api/v2#Representation",
+                            "http://api.knora.org/ontology/knora-api/v2#Resource"
+                        ]);
+
+                    expect(getOntoSpy).toHaveBeenCalledTimes(2);
+                    expect(getOntoSpy).toHaveBeenCalledWith("http://api.knora.org/ontology/knora-api/v2");
+                    expect(getOntoSpy).toHaveBeenCalledWith("http://0.0.0.0:3333/ontology/0001/anything/v2");
+
+                    done();
+                }
+            );
 
         });
 
