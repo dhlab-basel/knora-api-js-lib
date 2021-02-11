@@ -1,0 +1,3 @@
+# Import shared settings first so we can override below
+import %workspace%/common.bazelrc
+build --verbose_failures --subcommands --define=angular_ivy_enabled=True

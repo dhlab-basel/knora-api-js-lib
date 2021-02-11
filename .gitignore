@@ -37,9 +37,9 @@
 
 # Do not add package-lock.json of the test app to git because it could lead to problems when some dependency version change in the lib and is not adapted here.
 client-test-data.zip
-test-framework/package-lock.json
-test-framework/yalc.lock
 test-framework/dist
 test-framework/node_modules
 test-framework/.yalc
 /.tmp
+/.ijwb
+bazel-out

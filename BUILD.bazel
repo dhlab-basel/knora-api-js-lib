@@ -1,0 +1,7 @@
+exports_files(
+    srcs = [
+        "tsconfig.json",
+        "karma.conf.js",
+    ],
+    visibility = ["//visibility:public"]
+)

@@ -1,0 +1,76 @@
+# Declares that this directory is the root of a Bazel workspace.
+# See https://docs.bazel.build/versions/master/build-ref.html#workspace
+workspace(
+    # How this workspace would be referenced with absolute labels from another workspace
+    name = "io_dasch_dsp_js_lib",
+    # Map the @npm bazel workspace to the node_modules directory.
+    # This lets Bazel use the same node_modules as other local tooling.
+    managed_directories = {
+        "@npm": ["node_modules"],
+        "@test-framework_npm": ["test-framework/node_modules"],
+    },
+)
+
+# These rules are built-into Bazel but we need to load them first to download more rules
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# bazel-skylib 1.0.2 released 2019.10.09 (https://github.com/bazelbuild/bazel-skylib/releases/tag/1.0.2)
+# required by: rules_webtesting
+skylib_version = "1.0.2"
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
+    type = "tar.gz",
+    url = "https://github.com/bazelbuild/bazel-skylib/releases/download/{}/bazel-skylib-{}.tar.gz".format(skylib_version, skylib_version),
+)
+
+# Fetch rules_nodejs so we can install our npm dependencies
+http_archive(
+    name = "build_bazel_rules_nodejs",
+    sha256 = "121f17d8b421ce72f3376431c3461cd66bfe14de49059edc7bb008d5aebd16be",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/2.3.1/rules_nodejs-2.3.1.tar.gz"],
+)
+
+# Check the bazel version and download npm dependencies
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install")
+
+# NOTE: this rule installs nodejs, npm, and yarn, but does NOT install
+# your npm dependencies into your node_modules folder.
+# You must still run the package manager (npm install) to do this.
+node_repositories(
+    package_json = ["//:package.json"],
+)
+
+# The npm_install rule runs npm anytime the package.json or package-lock.json
+# file changes. It also extracts any Bazel rules distributed in an npm package.
+npm_install(
+    # Name this npm so that Bazel Label references look like @npm//package
+    name = "npm",
+    package_json = "//:package.json",
+    package_lock_json = "//:package-lock.json",
+)
+
+npm_install(
+    # Name this npm so that Bazel Label references look like @npm//package
+    name = "test-framework_npm",
+    package_json = "//test-framework:package.json",
+    package_lock_json = "//test-framework:package-lock.json",
+)
+
+# Fetch transitive Bazel dependencies of @bazel/karma
+# This installs the 'io_bazel_rules_webtesting' repository,
+load("@npm//@bazel/karma:package.bzl", "npm_bazel_karma_dependencies")
+
+npm_bazel_karma_dependencies()
+
+# Set up web testing, choose browsers we can test on
+load("@io_bazel_rules_webtesting//web:repositories.bzl", "web_test_repositories")
+
+web_test_repositories()
+
+load("@io_bazel_rules_webtesting//web/versioned:browsers-0.3.2.bzl", "browser_repositories")
+
+browser_repositories(
+    chromium = True,
+    firefox = False,
+)

@@ -1,0 +1,42 @@
+load("@npm//@bazel/typescript:index.bzl", "ts_library")
+
+load("@npm//@bazel/karma:index.bzl", "karma_web_test")
+
+package(default_visibility = ["//visibility:public"])
+
+ts_library(
+    name = "js_lib_library",
+    srcs = glob(
+        ["**/*.ts"],
+        exclude = ["**/*.spec.ts"],
+    ),
+    deps = [
+        "@npm//@types/long",
+        "@npm//long",
+        # "@npm//rxjs/ajax",
+        "@npm//json2typescript",
+    ],
+)
+
+ts_library(
+    name = "js_lib_test_library",
+    srcs = glob(
+        ["**/*.spec.ts"],
+    ),
+    deps = [
+        # ":js_lib_library",
+        "@npm//@types/long",
+        "@npm//long",
+        # "@npm//rxjs/ajax",
+        # "@npm//json2typescript",
+    ],
+)
+
+karma_web_test(
+    name = "js_lib_tests",
+    srcs = [":js_lib_test_library"],
+    config_file = "//:karma.conf.js",
+    deps = [
+        # ":js_lib_library"
+    ],
+)

@@ -1,0 +1,15 @@
+load("@npm//@bazel/typescript:index.bzl", "ts_config")
+
+package(default_visibility = ["//:__subpackages__"])
+
+ts_config(
+    name = "tsconfig-test",
+    src = "tsconfig-test.json",
+    deps = [":tsconfig.json"],
+)
+
+ts_config(
+    name = "tsconfig-server",
+    src = "tsconfig.server.json",
+    deps = [":tsconfig.json"],
+)
