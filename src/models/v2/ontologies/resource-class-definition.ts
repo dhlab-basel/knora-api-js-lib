@@ -19,11 +19,11 @@ export class ResourceClassDefinition extends ClassDefinition {
     @JsonProperty(Constants.SubClassOf, SubClassOfConverter)
     subClassOf: string[] = [];
 
-    @JsonProperty(Constants.Comment, String, true)
-    comment?: string = undefined;
+    @JsonProperty(Constants.Comment, String)
+    comment: string = "";
 
-    @JsonProperty(Constants.Label, String, true)
-    label?: string = undefined;
+    @JsonProperty(Constants.Label, String)
+    label: string = "";
 
     @JsonProperty(Constants.SubClassOf, HasCardinalityForPropertyConverter)
     propertiesList: IHasProperty[] = [];
@@ -38,14 +38,14 @@ export class ResourceClassDefinition extends ClassDefinition {
 @JsonObject("ResourceClassDefinitionWithAllLanguages")
 export class ResourceClassDefinitionWithAllLanguages extends ResourceClassDefinition {
 
-    @JsonProperty(Constants.Comment, StringLiteralToStringConverter, true)
-    comment?: string = undefined;
+    @JsonProperty(Constants.Comment, StringLiteralToStringConverter)
+    comment: string = "";
 
     @JsonProperty(Constants.Comment, StringLiteralToStringLiteralArrayConverter, true)
     comments: StringLiteralV2[] = [];
 
-    @JsonProperty(Constants.Label, StringLiteralToStringConverter, true)
-    label?: string = undefined;
+    @JsonProperty(Constants.Label, StringLiteralToStringConverter)
+    label: string = "";
 
     @JsonProperty(Constants.Label, StringLiteralToStringLiteralArrayConverter, true)
     labels: StringLiteralV2[] = [];
